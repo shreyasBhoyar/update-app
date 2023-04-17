@@ -29,7 +29,7 @@ const compare = () => {
         missingGlobalFields.push(result[i]);
       }
     }
-    // updateExsistingContentTypes(values);
+    updateExsistingGlobalFields(values);
     if (missingGlobalFields.length > 0) {
         console.log(missingGlobalFields);
       for (let globalField of missingGlobalFields) {
@@ -66,10 +66,14 @@ const updateExsistingGlobalFields = async (globalField) => {
 
   const client = contentstack.client();
   for (let i = 0; i < destinationGlobalField.length; i++) {
-    let currrentSource = sourceContentTypes.find(
+    let currentSource = sourceGlobalField.find(
       (r) => r.uid === destinationGlobalField[i].uid
     );
-    currrentSource = await updateExtensionElementOfSchema(currrentSource);
+//    if(currentSource!=undefined){
+//     console.log(currentSource.schema===undefined)
+//    }
+    if(currentSource!=undefined && currentSource.schema.filter((r)=>r.extension_uid!=null).length>0){
+    currentSource = await updateExtensionElementOfSchema(currentSource)
     client
       .stack({
         api_key: "blt29cd0e42badc2f84",
@@ -78,11 +82,12 @@ const updateExsistingGlobalFields = async (globalField) => {
       .globalField(destinationGlobalField[i].uid)
       .fetch()
       .then((globalField) => {
-        globalField.schema = [...currrentSource.schema];
+        globalField.schema = [...currentSource.schema];
         return globalField.update();
       })
       .then((contentType) => console.log(contentType));
   }
+}
 };
 
 const updateExtensionElementOfSchema = async (content_type) => {
